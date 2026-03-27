@@ -9,7 +9,7 @@ def main():
     df = load_data_via_api()
     print(df.head())
     
-    df = load_fx_data("data/eurusd.csv")
+    #df = load_fx_data("data/eurusd.csv")
     X, y = create_features(df)
 
     model, scaler = train_model(X, y)
