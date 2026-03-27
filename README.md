@@ -38,3 +38,11 @@ Sharpe ratio, cumulative returns, and drawdowns are evaluated.
 - LSTM / sequence models
 - Cross-asset features (rates, equities)
 - Transaction cost modeling
+
+
+## To run app and get tick data:
+1.  $uvicorn api.app:app --reload
+2.  In browser, go to http://127.0.0.1:8000
+3.  You should see {"status":"FX Tick API running"}
+4.  $curl "http://127.0.0.1:8000/ticks?symbol=EURUSD&start=2025-01-01T00:00:00&end=2025-01-01T00:00:05"
+
