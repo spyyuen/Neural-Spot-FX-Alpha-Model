@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import logging
 
 def load_fx_data(path):
     df = pd.read_csv(path, parse_dates=['Date'])
@@ -17,7 +18,7 @@ def load_data_via_api():
     params = {
         "symbol": "EURUSD",
         "start": "2025-01-01T00:00:00",
-        "end": "2025-03-01T00:01:00"
+        "end": "2025-01-07T00:01:00"
     }
 
     response = requests.get(BASE_URL, params=params)
@@ -25,13 +26,14 @@ def load_data_via_api():
     # Check request success
     response.raise_for_status()
 
+    logging.info(f'Querying data with params {params}')    
     data = response.json()
 
     # Convert to DataFrame
     df = pd.DataFrame(data)
-
-    # Convert timestamp to datetime
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    #print('df ', df)
+    ## Convert timestamp to datetime
+    #df["timestamp"] = pd.to_datetime(df["timestamp"])
 
     # Set index
     df.set_index("timestamp", inplace=True)

@@ -1,9 +1,8 @@
-from data_loader import load_fx_data
+from load_data import load_fx_data, load_data_via_api
 from features import create_features
 from train import train_model
 from backtest import backtest
 
-from data_loader import load_data_via_api
 
 def main():
     df = load_data_via_api()
