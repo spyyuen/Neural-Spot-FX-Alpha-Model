@@ -1,46 +1,139 @@
+import argparse
+import os
 import pandas as pd
 import requests
-import logging
+from datetime import datetime, timedelta
 
-def load_fx_data(path):
-    df = pd.read_csv(path, parse_dates=['Date'])
-    df = df.sort_values('Date')
-    df.set_index('Date', inplace=True)
+# ----------------------------
+# Config
+# ----------------------------
+BASE_URL = "http://127.0.0.1:8000/ticks"
+DATA_DIR = "data"
 
-    df['return'] = df['Close'].pct_change()
-    return df.dropna()
+os.makedirs(DATA_DIR, exist_ok=True)
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--syms", required=False, type=str, help="Comma-delimited list of syms, e.g. EURUSD,GBPUSD", default="EURUSD")
+    parser.add_argument("--start", required=False, type=str, help="Start datetime (YYYY-MM-DD)", default="2026-02-01")
+    parser.add_argument("--end", required=False, type=str, help="End datetime (YYYY-MM-DD)", default='2026-02-05')
+    args = parser.parse_args()
+    return vars(args)
 
-def load_data_via_api():
 
-    # API endpoint (local)
-    BASE_URL = "http://127.0.0.1:8000/ticks"
+# ----------------------------
+# Cache logic
+# ----------------------------
+def get_cache_path(symbol, start, end):
+    return os.path.join(
+        DATA_DIR,
+        f"{symbol}_{start.date()}_{end.date()}.parquet"
+    )
 
+
+def load_or_fetch(symbol, start, end):
+    cache_file = get_cache_path(symbol, start, end)
+
+    if os.path.exists(cache_file):
+        print(f"[CACHE HIT] {cache_file}")
+        return pd.read_parquet(cache_file)
+
+    print(f"[FETCH] {symbol} {start} -> {end}")
+    df = fetch_ticks(symbol, start, end)
+
+    df.to_parquet(cache_file)
+    return df
+
+
+# ----------------------------
+# Main data loader
+# ----------------------------
+def load_data_via_api(symbol, start, end):
+    dfs = []
+
+    start = datetime.fromisoformat(start)
+    end = datetime.fromisoformat(end)
+    for chunk_start, chunk_end in generate_weekly_ranges(start, end):
+        df_chunk = load_or_fetch(symbol, chunk_start, chunk_end)
+        dfs.append(df_chunk)
+
+    df = pd.concat(dfs).sort_index()
+    return df
+
+
+# ----------------------------
+# CLI
+# ----------------------------
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--syms",
+        nargs="+",
+        required=True,
+        help="List of syms, e.g. EURUSD GBPUSD"
+    )
+
+    parser.add_argument(
+        "--start",
+        required=True,
+        help="Start datetime (YYYY-MM-DD)"
+    )
+
+    parser.add_argument(
+        "--end",
+        required=True,
+        help="End datetime (YYYY-MM-DD)"
+    )
+
+    return parser.parse_args()
+
+
+# ----------------------------
+# API fetch (one chunk)
+# ----------------------------
+def fetch_ticks(symbol, start, end):
     params = {
-        "symbol": "EURUSD",
-        "start": "2025-01-01T00:00:00",
-        "end": "2025-01-07T00:01:00"
+        "symbol": symbol,
+        "start": start.isoformat(),
+        "end": end.isoformat()
     }
 
     response = requests.get(BASE_URL, params=params)
-
-    # Check request success
     response.raise_for_status()
 
-    logging.info(f'Querying data with params {params}')    
-    data = response.json()
-
-    # Convert to DataFrame
-    df = pd.DataFrame(data)
-    #print('df ', df)
-    ## Convert timestamp to datetime
-    #df["timestamp"] = pd.to_datetime(df["timestamp"])
-
-    # Set index
+    df = pd.DataFrame(response.json())
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
     df.set_index("timestamp", inplace=True)
 
-    print("Fetched data of length len(df)")
-    print(df.head())
     return df
 
+
+# ----------------------------
+# Weekly chunk generator
+# ----------------------------
+def generate_weekly_ranges(start, end):
+    current = start
+    while current < end:
+        next_week = min(current + timedelta(days=7), end)
+        yield current, next_week
+        current = next_week
+
+
+# ----------------------------
+# Main
+# ----------------------------
+def run(syms, start, end):
+
+    for symbol in syms.split(","):
+        print(f"\nProcessing {symbol}...")
+
+        df = load_data_via_api(symbol, start, end)
+
+        print(df.head())
+        print(df.tail())
+
+
 if __name__ == "__main__":
-    load_data_via_api()
+    kwargs = parse_args()
+    run(**kwargs)
+
