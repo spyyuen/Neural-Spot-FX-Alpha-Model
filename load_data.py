@@ -32,7 +32,6 @@ def get_cache_path(symbol, start, end):
 
 def load_or_fetch(symbol, start, end):
     cache_file = get_cache_path(symbol, start, end)
-
     if os.path.exists(cache_file):
         print(f"[CACHE HIT] {cache_file}")
         return pd.read_parquet(cache_file)
@@ -102,7 +101,7 @@ def fetch_ticks(symbol, start, end):
     response.raise_for_status()
 
     df = pd.DataFrame(response.json())
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    #df["timestamp"] = pd.to_datetime(df["timestamp"])
     df.set_index("timestamp", inplace=True)
 
     return df
