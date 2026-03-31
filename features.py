@@ -42,7 +42,7 @@ def create_features(df):
     # ----------------------------
     # 3. Expanding features (NEW)
     # ----------------------------
-
+    print('calculating expanding features')
     # Expanding mean return (drift)
     X["expanding_mean_return"] = df["return"].expanding().mean()
 
@@ -68,6 +68,7 @@ def create_features(df):
     X["spread"] = df["spread"]
     X["spread_change"] = df["spread"].diff()
 
+
     # Price acceleration
     X["return_acceleration"] = df["return"].diff()
 
@@ -87,6 +88,7 @@ def create_features(df):
     # ----------------------------
     # Target
     # ----------------------------
+    print('defining target')
     y = df["return"].shift(-1)
 
     # ----------------------------

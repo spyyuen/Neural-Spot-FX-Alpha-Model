@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from model import FXModel
 
-def train_model(X, y, epochs=20):
+def train_model(X, y, epochs=5):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
@@ -24,7 +24,7 @@ def train_model(X, y, epochs=20):
         loss.backward()
         optimizer.step()
 
-        if epoch % 5 == 0:
+        if epoch % 2 == 0:
             print(f"Epoch {epoch}, Loss: {loss.item():.6f}")
 
     return model, scaler

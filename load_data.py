@@ -16,6 +16,7 @@ def parse_args():
     parser.add_argument("--syms", required=False, type=str, help="Comma-delimited list of syms, e.g. EURUSD,GBPUSD", default="EURUSD")
     parser.add_argument("--start", required=False, type=str, help="Start datetime (YYYY-MM-DD)", default="2026-02-01")
     parser.add_argument("--end", required=False, type=str, help="End datetime (YYYY-MM-DD)", default='2026-02-05')
+    parser.add_argument("--backfill", action="store_true", help="Enable backfilling of data")
     args = parser.parse_args()
     return vars(args)
 
@@ -30,11 +31,13 @@ def get_cache_path(symbol, start, end):
     )
 
 
-def load_or_fetch(symbol, start, end):
-    cache_file = get_cache_path(symbol, start, end)
-    if os.path.exists(cache_file):
-        print(f"[CACHE HIT] {cache_file}")
-        return pd.read_parquet(cache_file)
+def load_or_fetch(symbol, start, end, backfill=False):
+    if not backfill:
+        cache_file = get_cache_path(symbol, start, end)
+        if os.path.exists(cache_file):
+            print(f"[CACHE HIT] {cache_file}")
+            print('cache_file ', pd.read_parquet(cache_file))
+            return pd.read_parquet(cache_file)
 
     print(f"[FETCH] {symbol} {start} -> {end}")
     df = fetch_ticks(symbol, start, end)
@@ -46,13 +49,13 @@ def load_or_fetch(symbol, start, end):
 # ----------------------------
 # Main data loader
 # ----------------------------
-def load_data_via_api(symbol, start, end):
+def load_data_via_api(symbol, start, end, backfill):
     dfs = []
 
     start = datetime.fromisoformat(start)
     end = datetime.fromisoformat(end)
     for chunk_start, chunk_end in generate_weekly_ranges(start, end):
-        df_chunk = load_or_fetch(symbol, chunk_start, chunk_end)
+        df_chunk = load_or_fetch(symbol, chunk_start, chunk_end, backfill)
         dfs.append(df_chunk)
 
     df = pd.concat(dfs).sort_index()
@@ -121,12 +124,12 @@ def generate_weekly_ranges(start, end):
 # ----------------------------
 # Main
 # ----------------------------
-def run(syms, start, end):
+def run(syms, start, end, backfill):
 
     for symbol in syms.split(","):
         print(f"\nProcessing {symbol}...")
 
-        df = load_data_via_api(symbol, start, end)
+        df = load_data_via_api(symbol, start, end, backfill)
 
         print(df.head())
         print(df.tail())
