@@ -32,8 +32,8 @@ def get_cache_path(symbol, start, end):
 
 
 def load_or_fetch(symbol, start, end, backfill=False):
+    cache_file = get_cache_path(symbol, start, end)
     if not backfill:
-        cache_file = get_cache_path(symbol, start, end)
         if os.path.exists(cache_file):
             print(f"[CACHE HIT] {cache_file}")
             print('cache_file ', pd.read_parquet(cache_file))
