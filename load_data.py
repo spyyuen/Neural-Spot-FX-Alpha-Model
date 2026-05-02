@@ -41,6 +41,7 @@ def load_or_fetch(symbol, start, end, backfill=False):
 
     print(f"[FETCH] {symbol} {start} -> {end}")
     df = fetch_ticks(symbol, start, end)
+    df.reset_index(drop=False, inplace=True)
 
     df.to_parquet(cache_file)
     return df

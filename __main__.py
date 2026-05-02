@@ -12,7 +12,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--syms", required=False, type=str, help="Comma-delimited list of syms, e.g. EURUSD,GBPUSD", default="EURUSD")
     parser.add_argument("--start", required=False, type=str, help="Start datetime (YYYY-MM-DD)", default="2026-02-01")
-    parser.add_argument("--end", required=False, type=str, help="End datetime (YYYY-MM-DD)", default='2026-03-05')
+    parser.add_argument("--end", required=False, type=str, help="End datetime (YYYY-MM-DD)", default='2026-04-05')
     parser.add_argument("--backfill", action="store_true", help="Enable backfilling of data")
     args = parser.parse_args()
 
