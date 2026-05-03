@@ -95,7 +95,13 @@ def create_features(df):
     # Clean up
     # ----------------------------
     X = X.replace([np.inf, -np.inf], np.nan)
-    X = X.dropna()
-    y = y.loc[X.index]
+
+    dataset = pd.concat([X, y.rename("target")], axis=1)
+
+    dataset = dataset.dropna().reset_index(drop=True)
+
+    X = dataset.drop(columns="target")
+    y = dataset["target"]
 
     return X, y
+
