@@ -121,6 +121,15 @@ def generate_weekly_ranges(start, end):
         yield current, next_week
         current = next_week
 
+# ----------------------------
+# Resample FX to align with equities tick data
+# ----------------------------
+def resample_fx(df):
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+
+    df = df.set_index("timestamp").resample("1S").last().ffill()
+
+    return df.reset_index()
 
 # ----------------------------
 # Main
@@ -131,6 +140,7 @@ def run(syms, start, end, backfill):
         print(f"\nProcessing {symbol}...")
 
         df = load_data_via_api(symbol, start, end, backfill)
+        df = resample_fx(df)
 
         print(df.head())
         print(df.tail())
