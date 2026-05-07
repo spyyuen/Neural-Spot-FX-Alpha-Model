@@ -86,6 +86,28 @@ def create_features(df):
     X["rolling_zscore"] = (df["return"] - rolling_mean) / rolling_std
 
     # ----------------------------
+    # Equity features
+    # ----------------------------
+
+    df["spx_ret"] = df["spx"].pct_change()
+    df["eustoxx_ret"] = df["eustoxx"].pct_change()
+
+    # Relative performance (KEY signal)
+    X["equity_relative"] = df["eustoxx_ret"] - df["spx_ret"]
+
+    # Risk regime
+    X["spx_momentum_20"] = df["spx"] / df["spx"].shift(20) - 1
+
+    # Volatility spillover
+    X["spx_vol_20"] = df["spx_ret"].rolling(20).std()
+
+    # Correlation regime
+    X["fx_spx_corr_50"] = df["return"].rolling(50).corr(df["spx_ret"])
+
+    # Divergence signal
+    X["equity_fx_divergence"] = df["spx_ret"] - df["return"]
+
+    # ----------------------------
     # Target
     # ----------------------------
     print('defining target')
