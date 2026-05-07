@@ -132,6 +132,18 @@ def resample_fx(df):
     return df.reset_index()
 
 # ----------------------------
+# Merge FX and equities datasets
+# ----------------------------
+def merge_fx_equities(df_fx, spx, eu):
+    df = df_fx.merge(spx, on="timestamp", how="left")
+    df = df.merge(eu, on="timestamp", how="left")
+
+    # forward-fill equities (they move slower)
+    df[["spx", "eustoxx"]] = df[["spx", "eustoxx"]].ffill()
+
+    return df
+
+# ----------------------------
 # Main
 # ----------------------------
 def run(syms, start, end, backfill):
@@ -139,12 +151,14 @@ def run(syms, start, end, backfill):
     for symbol in syms.split(","):
         print(f"\nProcessing {symbol}...")
 
-        df = load_data_via_api(symbol, start, end, backfill)
-        df = resample_fx(df)
+        df_fx = load_data_via_api(symbol, start, end, backfill)
+        df_fx = resample_fx(df_fx)
 
         print(df.head())
         print(df.tail())
 
+    df_spx, df_eu = load_equities(start_end)
+    df_fx_equities = merge_fx_equities(df_fx, df_spx, df_eu)
 
 if __name__ == "__main__":
     kwargs = parse_args()
