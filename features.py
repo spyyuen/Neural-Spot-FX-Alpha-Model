@@ -108,6 +108,20 @@ def create_features(df):
     X["equity_fx_divergence"] = df["spx_ret"] - df["return"]
 
     # ----------------------------
+    # Equities often close after FX moves, so lag them.
+    # ----------------------------
+    equity_cols = [
+        "equity_relative",
+        "fx_spx_corr_50",
+        "spx_momentum_20",
+        "spx_vol_20",
+        "equity_fx_divergence"
+    ]
+
+    for col in equity_cols:
+        X[col] = X[col].shift(1)
+
+    # ----------------------------
     # Target
     # ----------------------------
     print('defining target')
