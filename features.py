@@ -117,7 +117,7 @@ def create_features(df):
         "spx_vol_20",
         "equity_fx_divergence"
     ]
-
+    # Prevent lookahead bias
     for col in equity_cols:
         X[col] = X[col].shift(1)
 
@@ -138,6 +138,14 @@ def create_features(df):
 
     X = dataset.drop(columns="target")
     y = dataset["target"]
+
+    # ----------------------------
+    # Sanity check
+    # ----------------------------
+    print(X[["equity_relative", "spx_momentum_20"]].describe())
+
+    print("Correlation with target:")
+    print(X.corrwith(y).sort_values().tail(10))
 
     return X, y
 
