@@ -121,6 +121,31 @@ def create_features(df):
     for col in equity_cols:
         X[col] = X[col].shift(1)
 
+
+    # ----------------------------
+    # Add microstructure features
+    # ----------------------------
+    X["spread"] = df["ask"] - df["bid"]
+
+    # spread regime
+    X["spread_zscore"] = (
+            (X["spread"] - X["spread"].rolling(50).mean())
+            / X["spread"].rolling(50).std()
+    )
+
+    # tick direction
+    X["tick_direction"] = np.sign(df["ret_1"])
+
+    # signed flow proxy
+    X["signed_flow"] = (
+            np.sign(df["ret_1"]) * abs(df["ret_1"])
+    )
+
+    # order-flow persistence
+    X["flow_persistence"] = (
+        X["tick_direction"].rolling(20).mean()
+    )
+
     # ----------------------------
     # Target
     # ----------------------------
@@ -140,7 +165,7 @@ def create_features(df):
     y = dataset["target"]
 
     # ----------------------------
-    # Sanity check
+    # Sanity check: If equities show zero signal, something is misaligned.
     # ----------------------------
     print(X[["equity_relative", "spx_momentum_20"]].describe())
 
