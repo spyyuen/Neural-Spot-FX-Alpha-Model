@@ -147,6 +147,35 @@ def create_features(df):
     )
 
     # ----------------------------
+    # Add time of day features
+    # ----------------------------
+    df["hour"] = df["timestamp"].dt.hour
+
+    X["london_session"] = (
+
+            (df["hour"] >= 7) &
+
+            (df["hour"] <= 16)
+
+    ).astype(int)
+
+    X["ny_session"] = (
+
+            (df["hour"] >= 13) &
+
+            (df["hour"] <= 21)
+
+    ).astype(int)
+
+    X["session_overlap"] = (
+
+            X["london_session"] &
+
+            X["ny_session"]
+
+    ).astype(int)
+
+    # ----------------------------
     # Target
     # ----------------------------
     print('defining target')
