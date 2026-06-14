@@ -18,6 +18,7 @@ Dollar:
 Rates:
 * US 2Y Treasury
 * German 2Y Bund
+Based on https://arxiv.org/abs/1912.09363 Temporal Fusion Transformers for Interpretable Multi-horizon Time Series Forecasting
 """
 import numpy as np
 import pandas as pd
